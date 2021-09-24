@@ -11,7 +11,8 @@
   "contributes": {
       "languages": [{
         "id": "viewr",
-          "extensions": ["viewr"]
+          "extensions": ["viewr"],
+          "configuration": "./language-configuration.json"
       }],
       "grammars": [{
         "language": "viewr",
