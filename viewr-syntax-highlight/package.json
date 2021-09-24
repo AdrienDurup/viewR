@@ -1,0 +1,21 @@
+{
+  "name": "vrml-support",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+},
+"categories": [
+    "Programming Languages"
+],
+  "contributes": {
+      "languages": [{
+        "id": "vrml",
+          "extensions": ["vrml"]
+      }],
+      "grammars": [{
+        "language": "vrml",
+          "scopeName": "source.vrml",
+          "path": "./syntaxes/vrml.tmLanguage.json"
+      }]
+  }
+}
