@@ -1,6 +1,7 @@
 {
   "name": "viewr-support",
   "version": "0.0.1",
+  "publisher": "Durad",
   "engines": {
     "vscode": "^1.60.0"
 },
