@@ -1,0 +1,98 @@
+  {
+    "name": "vrml-support",
+    "version": "0.0.1",
+    "engines": {
+      "vscode": "^1.60.0"
+  },
+  "categories": [
+      "Programming Languages"
+  ],
+    "contributes": {
+        "languages": [{
+          "id": "vrml",
+            "extensions": ["html","vrml"]
+        }],
+        "grammars": [{
+            "injecTo": ["text.html.basic"],
+            "scopeName": "js-variable.injection",
+            "path": "./syntaxes/vrml.injection.json"
+        }]
+    }
+}
+
+
+
+{
+    "contributes": {
+        "languages": [{
+            "extensions": ["vrml"]
+        }],
+        "grammars": [{
+            "injecTo": ["text.html.basic"],
+            "scopeName": "js-variable.injection",
+            "path": "./syntaxes/js-variable.injection.json"
+        }]
+    }
+}
+
+
+
+
+
+
+
+{
+  "name": "abc-lang",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+},
+"categories": [
+    "Programming Languages"
+],
+    "contributes": {
+      "languages": [
+        {
+          "id": "abc",
+          "extensions": [".abc"]
+        }
+      ],
+      "grammars": [
+        {
+          "language": "abc",
+          "scopeName": "source.abc",
+          "path": "./syntaxes/abc.tmGrammar.json"
+        }
+      ]
+    }
+  }
+
+
+
+
+
+  {
+  "scopeName": "source.abc",
+  "patterns": [{ "include": "#expression" }],
+  "repository": {
+    "expression": {
+      "patterns": [{ "include": "#letter" }, { "include": "#paren-expression" }]
+    },
+    "letter": {
+      "match": "a|b|c",
+      "name": "keyword.letter"
+    },
+    "paren-expression": {
+      "begin": "\\(",
+      "end": "\\)",
+      "beginCaptures": {
+        "0": { "name": "punctuation.paren.open" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.paren.close" }
+      },
+      "name": "expression.group",
+      "patterns": [{ "include": "#expression" }]
+    }
+  }
+}
