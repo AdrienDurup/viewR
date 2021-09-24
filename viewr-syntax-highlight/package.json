@@ -1,5 +1,5 @@
 {
-  "name": "vrml-support",
+  "name": "viewr-support",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.60.0"
@@ -9,13 +9,13 @@
 ],
   "contributes": {
       "languages": [{
-        "id": "vrml",
-          "extensions": ["vrml"]
+        "id": "viewr",
+          "extensions": ["viewr"]
       }],
       "grammars": [{
-        "language": "vrml",
-          "scopeName": "source.vrml",
-          "path": "./syntaxes/vrml.tmLanguage.json"
+        "language": "viewr",
+          "scopeName": "source.viewr",
+          "path": "./syntaxes/viewr.tmLanguage.json"
       }]
   }
 }
