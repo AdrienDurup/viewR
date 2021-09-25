@@ -1,0 +1,33 @@
+{
+	"information_for_contributors": [
+"nothing"
+	],
+	"name": "viewr",
+	"scopeName": "source.viewr",
+	"patterns": [
+		{ 
+			"include": "#template-variable" 
+		}
+	],
+	"repository": {
+		"template-variable": {
+			"patterns": [{ "include": "#paren-expression" }]
+		  },
+		  "letter": {
+			"match": "(?<=\\$\\{)\\s{,1}[a-zA-Z_][a-zA-Z_0-9]+\\s{,1}(?=\\})",
+			"name": "entity.other.attribute-name"
+		  },
+		  "paren-expression": {
+			"begin": "\\$\\{",
+			"end": "\\}",
+			"beginCaptures": {
+			  "0": { "name": "keyword.letter" }
+			},
+			"endCaptures": {
+			  "0": { "name": "keyword.letter" }
+			},
+			"name": "expression.group",
+			"patterns": [{ "include": "#letter" }]
+		  }
+		}
+	}

@@ -1,5 +1,5 @@
 {
-  "name": "viewr-support",
+  "name": "viewr-support-for-html",
   "version": "0.0.1",
   "publisher": "Durad",
   "engines": {
@@ -10,14 +10,14 @@
 ],
   "contributes": {
       "languages": [{
-        "id": "viewr",
-          "extensions": ["viewr"],
+        "id":"html",
+          "extensions": ["html,vrmu"],
           "configuration": "./language-configuration.json"
       }],
       "grammars": [{
-        "language": "viewr",
+        "injectInto": "html.text.basic",
           "scopeName": "source.viewr",
-          "path": "./syntaxes/viewr.tmLanguage.json"
+          "path": "./syntaxes/viewr.injection.json"
       }]
   }
 }
