@@ -1,5 +1,5 @@
 {
-  "name": "viewr-support",
+  "name": "viewr-syntax-highlight",
   "version": "0.0.1",
   "publisher": "Durad",
   "engines": {
@@ -8,10 +8,19 @@
 "categories": [
     "Programming Languages"
 ],
+"activationEvents": [
+  "onCommand:test.helloWorld"
+],
+"main": "./extension.js",
   "contributes": {
+    "commands": [{
+      "command": "test.helloWorld",
+      "title": "Hello World"
+
+}],
       "languages": [{
         "id": "viewr",
-          "extensions": ["viewr"],
+          "extensions": ["vrmu"],
           "configuration": "./language-configuration.json"
       }],
       "grammars": [{

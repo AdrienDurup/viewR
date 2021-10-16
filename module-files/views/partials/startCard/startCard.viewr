@@ -1,0 +1,10 @@
+<form class="form_startgame form_startgame__card" id="startNew">
+<label name="new-session">${newSession}</label>
+<input type="text" id="new-session" name="new-session" required>
+<button class="index_button">${indexButton}</button>
+</form>
+<!--<div class="form_startgame__card">
+<label name="new-session">Nouvelle Partie</label>
+<input type="text" id="new-session" name="new-session">
+<button class="index_button">Créer</button>
+</div>-->
