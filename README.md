@@ -13,7 +13,7 @@ This extension is based on "html-text-basic" TextMate grammar file, and intends 
 
 ## What it can do
 
-# Inject data via variables
+### Inject data via variables
 
 ```html
 <body>
@@ -21,6 +21,51 @@ This extension is based on "html-text-basic" TextMate grammar file, and intends 
         ${myVariable}
     </main>
 </body>
+```
+
+### Wrap in outer component
+
+#### Outer component
+
+With, for example, path : views/partials/pageBase.viewr.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>viewR Demo</title>
+    <link rel="stylesheet" href="/css/site-styles.css">
+</head>
+<body>
+<header class="header">
+<h1 class="title">
+viewR <span class="title__baseline">Demo</span>
+</h1>
+<div class="header__separator"></div>
+</header>
+<div class="wrapper">
+  <<INSERTION-POINT>>
+<footer class="footer">
+©Adrien Durup
+</footer>
+  </div>
+</body>
+</html>
+```
+
+#### Inserted component at INSERTION-POINT
+
+at views/index.viewr path.
+
+```html
+${outerComp("views/partials/pageBase")}
+<div>
+    My Component
+</div>
+
 ```
 
 ## what it can’t
