@@ -1,6 +1,6 @@
 
 const viewr = require("../core/viewr");
-
+const users= require("../data/sampleData.json");
 
 /* Routes logic */
 module.exports = {
@@ -13,10 +13,8 @@ module.exports = {
 
             res.status(200).send(viewr.render("views/index",
                 {
-                    startCard: {
-                        newSession: "Nouvelle Partie",
-                        indexButton: "Créer"
-                    }
+                    card:users[0],
+                    cards:users,
                 }));
         },
 

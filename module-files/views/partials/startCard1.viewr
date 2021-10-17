@@ -1,5 +1,0 @@
-<form class="form_startgame form_startgame__card" id="startNew">
-<label name="new-session">${newSession}</label>
-<input type="text" id="new-session" name="new-session" required>
-<button class="index_button">${indexButton}</button>
-</form>

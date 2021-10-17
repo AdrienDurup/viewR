@@ -3,12 +3,19 @@ const { log } = require("console");
 const fs = require("fs");
 const ext = ".viewr";
 const viewr = {
+  /* 
+  TODO PUT ALL REGEX IN VIEWR PROPERTY viewr.rx
+  */
+ rx:{
+  stringAndVarParamRx : /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/,
+ },
   render: (pathString, valsObj) => {
     try {
+      console.log("render running");
       const path = pathString.split("\"").join("") + ext;
       let htmlStr = fs.readFileSync(path, "utf-8");
       const regex = /(?<=\$\{\s*).*?(?=\s*\})/g;
-       /* crée une string regex pour toutes les reconnaissances de ${fonctionDuModuleViewr()} */
+      /* crée une string regex pour toutes les reconnaissances de ${fonctionDuModuleViewr()} */
       function functionWrap(funcName) {
         // return `(?<=\\$\\{\\s*${funcName}\\(\\s*)(.*)(?=\\s*\\)\\s*\\})`;
         return `(\\$\\{\\s*${funcName}\\(\\s*)(.*)(\\s*\\)\\s*\\})`;
@@ -18,11 +25,12 @@ const viewr = {
         return `\\$\\{\\s*${funcName}\\(\\s*(.*)\\s*\\)\\s*\\}`;
       }
       const outerRx = new RegExp(functionWrap("outerComponent"));
+
       const innerCompRxGlobal = new RegExp(functionWrap2("component"), "g");
-      const innerCompRx = new RegExp(functionWrap2("component"));
-      const stringAndVarParamRx = /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/;//à remplacer plus tard par qqchose de plus robuste
-      // const outerRx = /(?<=\$\{\s*outerComponent\(\s*["'`]).*(?=["'`]\s*\)\s*\})/;
-      console.log(outerRx);
+      // const innerCompRx = new RegExp(functionWrap2("component"));
+
+      const loopCompRx = new RegExp(functionWrap2("loopComponent"), "g");
+      // const loopCompRx = new RegExp(functionWrap2("loopCompoment"));
 
       /* On fournit les composants englobants */
       const outer = htmlStr.match(outerRx);
@@ -31,20 +39,38 @@ const viewr = {
       };
 
       /* On fournit les composants intérieurs */
+      /* les simples */
       const innerComps = htmlStr.match(innerCompRxGlobal);
       if (innerComps) {
         for (el of innerComps) {
           // const match=innerCompsMatch.match(stringAndObjParamRx);
-          htmlStr= viewr.component(valsObj,htmlStr, el);
+          const generatedHTML = viewr.component(valsObj, htmlStr, el);
+          if (generatedHTML!=="") 
+            htmlStr = generatedHTML;
+            // console.log(generatedHTML);
+        };
+      };
+      /* les boucles */
+      const loopComps = htmlStr.match(loopCompRx);
+      if (loopComps) {
+        for (el of loopComps) {
+          htmlStr = viewr.loopComponent(valsObj, htmlStr, el);
         };
       };
 
       /* On fournit les variables */
+      /* 
+      TODO ajouter un meilleur controle sur la regex
+      qui prend les loops pour des variables 
+       */
       const varArray = htmlStr.match(regex);
       if (varArray) {
         for (el of varArray) {
-          htmlStr= viewr.findReplace(valsObj,htmlStr,el);
+          const tmpStr=viewr.findReplace(valsObj, htmlStr, el);
+          if(tmpStr)
+          htmlStr = tmpStr;
         };
+       // console.log("varArray",htmlStr);
       };
 
 
@@ -72,7 +98,8 @@ const viewr = {
   @param str: string to modify
   @ innerCompsMatchElement: element from array of viewr-components declarations, matching the component() pattern
    */
-  component: (valsObj,str, innerCompsMatchElement) => {//Attention match global en amont donc sans les capturants
+  component: (valsObj, str, innerCompsMatchElement) => {//Attention match global en amont donc sans les capturants
+    console.log("component() running");
     const stringAndVarParamRx = /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/;
     if (!innerCompsMatchElement) {
       return null;
@@ -84,8 +111,8 @@ const viewr = {
       path = match[1].split("\"").join("");
       objectName = match[2];
       values = valsObj[objectName];
-      viewrFuncLine =innerCompsMatchElement;
-      console.log(viewrFuncLine);
+      viewrFuncLine = innerCompsMatchElement;
+      // console.log(viewrFuncLine);
     };
     // console.log(match);
     let componentStr = viewr.render(path, values);
@@ -93,39 +120,71 @@ const viewr = {
     return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
     // console.log(str);
   },
+  loopComponent: (valsObj, str, loopCompMatchElement) => {//valsObj l’objet "global" à render qui contient toute la data nécessaire
+    // console.log(valsObj);
+    try {
 
-  findReplace: (valsObj,str, varName) => {
-    try{
-      console.log("str in findreplace",str);
-    const regexVar = /^[a-zA-Z_][a-zA-Z_0-9^-]*$/;
-    const regexProp = /^[a-zA-Z_][a-zA-Z_0-9^-]*(\.[a-zA-Z_0-9^-]*)+$/;
-    const regexArray = /^[a-zA-Z_][a-zA-Z_0-9^-]*(\.[a-zA-Z_0-9^-]*)*\[.*\]$/;//non utilisé encore
-    if (regexVar.test(varName)) {
-      // console.log(`VIEWR regexVar "${varName}" : `+regexVar.test(varName));
-      return str.replace("${" + varName + "}", valsObj[varName]);
-    } else if (regexProp.test(varName)) {
-      //  console.log(`VIEWR regexProp "${varName}": `+regexProp.test(varName));
-      const nameArr = varName.split(".");
-      let tmpValObj = valsObj;
+    if (!loopCompMatchElement)
+      return null;
 
-      /* pour chaque partie du tableau nameArr, on va chercher plus loin à l’intérieur de
-       tmpValObj copie de (tmpValObj) : tmpValObj[nameArr[0]][nameArr[1]][nameArr[2]]...
-       … équivalent à tmpValObj["prop1"]["prop2"]["prop3"]
-       à chaque boucle on change l’objet en référence jusqu’à ce qu’on récupère une valeur primitive à la fin*/
-
-      for (let i = 0; i < nameArr.length; i++) {
-        tmpValObj = tmpValObj[nameArr[i]];
-      };
-
-      return str.replace("${" + varName + "}", tmpValObj);
-    } else if (regexArray.test(varName)) {
-/*
-TODO  Implement Array row recognition 
-*/
+    const match=loopCompMatchElement.match(viewr.rx.stringAndVarParamRx);
+    console.log("loop running");
+    let path, values, objectName, viewrFuncLine;
+    if (match) {
+      path = match[1].split("\"").join("");
+      objectName = match[2];
+      values = valsObj[objectName];
+      viewrFuncLine = loopCompMatchElement;
+      // console.log(viewrFuncLine);
     };
-  }catch(e){
-    console.log(e);
-     };
+      const tmpArray = [];
+
+/*       if(!valsObj[objectName])
+      return null; */
+
+      for (dataObject of values) {
+        tmpArray.push(viewr.render(path,dataObject));
+      };
+      return str.replace(viewrFuncLine, tmpArray.join("\n"));
+    } catch (e) {
+      console.error(e);
+    };
+
+  },
+
+  findReplace: (valsObj, str, varName) => {
+    try {
+      // console.log("str in findreplace", str);
+      const regexVar = /^[a-zA-Z_][a-zA-Z_0-9^-]*$/;
+      const regexProp = /^[a-zA-Z_][a-zA-Z_0-9^-]*(\.[a-zA-Z_0-9^-]*)+$/;
+      const regexArray = /^[a-zA-Z_][a-zA-Z_0-9^-]*(\.[a-zA-Z_0-9^-]*)*\[.*\]$/;//non utilisé encore
+      if (regexVar.test(varName)) {
+        // console.log(`VIEWR regexVar "${varName}" : `+regexVar.test(varName));
+        return str.replace("${" + varName + "}", valsObj[varName]);
+      } else if (regexProp.test(varName)) {
+        //  console.log(`VIEWR regexProp "${varName}": `+regexProp.test(varName));
+        const nameArr = varName.split(".");
+        let tmpValObj = valsObj;
+
+        /* pour chaque partie du tableau nameArr, on va chercher plus loin à l’intérieur de
+         tmpValObj copie de (tmpValObj) : tmpValObj[nameArr[0]][nameArr[1]][nameArr[2]]...
+         … équivalent à tmpValObj["prop1"]["prop2"]["prop3"]
+         à chaque boucle on change l’objet en référence jusqu’à ce qu’on récupère une valeur primitive à la fin*/
+
+        for (let i = 0; i < nameArr.length; i++) {
+          tmpValObj = tmpValObj[nameArr[i]];
+        };
+
+        return str.replace("${" + varName + "}", tmpValObj);
+      } else if (regexArray.test(varName)) {
+        console.log("Array not implemented Yet");
+        /*
+            TODO  Implement Array row recognition 
+        */
+      };
+    } catch (e) {
+      console.log(e);
+    };
   },
   init: (xprLocals) => {//express locals
     this.locals = xprLocals;

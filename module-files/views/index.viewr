@@ -1,11 +1,7 @@
 ${outerComponent("views/partials/pagebase")}
 <main class="main_gamelaunch">
 <div class="main__formwrapper">
-${component("views/partials/startCard1",startCard)}
-<form class="form_startgame form_startgame__card" id="joinGame">
-<label name="new-session">Nom de la partie</label>
-<input type="text" id="new-session" name="new-session" required>
-<button class="index_button">Rejoindre</button>
-</form>
+${component("views/partials/card",card)}
+${loopComponent("views/partials/card",cards)}
 <div>
 </main>

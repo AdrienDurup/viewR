@@ -89,4 +89,17 @@ flex-direction: column;
 margin: 16px;
 padding: 2rem;
 box-shadow: 10px 10px 10px #00000010;
+align-items: center;
+/* background-color: whitesmoke; */
+}
+.card__pic{
+    width:100%;
+    padding: .5rem;
+}
+.card__name{
+text-align: center;
+}
+.card__city{
+font-style: italic;
+font-size: .8em;
 }

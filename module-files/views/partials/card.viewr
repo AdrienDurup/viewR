@@ -1,0 +1,5 @@
+<article class="form_startgame form_startgame__card" id="startNew">
+<img class="card__pic" src="${picture}">
+<div class="card__name" >${first_name} ${last_name}</div>
+<div class="card__city" >from ${city}</div>
+</article>

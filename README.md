@@ -23,9 +23,9 @@ This extension is based on "html-text-basic" TextMate grammar file, and intends 
 </body>
 ```
 
-### Wrap in outer component
+### Make a reusable wrapping component
 
-#### Outer component
+#### Wrapping component
 
 With, for example, path : views/partials/pageBase.viewr.
 
@@ -62,13 +62,57 @@ at views/index.viewr path.
 
 ```html
 ${outerComp("views/partials/pageBase")}
-<div>
-    My Component
-</div>
-
+<main>
+  <div>
+    Hello world !
+  </div>
+</main>
 ```
 
-## what it can’t
+#### In route controller (example with express)
+
+Can be used in node .end() as well.
+
+```javascript
+function controller(req, res) {
+            res.status(200).send(viewr.render("views/index",
+                {
+                    data: {
+                        firstName: "Robert",
+                        lastName: "Plant"
+                    }
+                }));
+        }
+```
+
+### Insert one or more components into a component
+
+#### Parent component
+
+component(path:string [ , data:object ])
+
+```html
+${outerComponent("views/partials/pagebase")}
+<main>
+  <div>
+    Hello World !
+  <div>
+  <div>
+    ${component("views/partials/card",card)}
+  <div>  
+</main>
+```
+
+#### Child component
+
+```html
+<article>
+<div>First Name : ${firstName}</div>
+<div>Last Name : ${lastName}</div>
+</article>
+```
+
+## what it can’t do
 
 - use express features for view engines
 - use js in .viewr files
