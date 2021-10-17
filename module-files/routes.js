@@ -10,5 +10,7 @@ const routeLogic=require("./controllers/mainController");
 router.use(xpr.static("assets"));
 router.use(routeLogic.log);
 router.get("/", routeLogic.root);
-
+router.get("/outerinner", routeLogic.outerinner);
+router.get("/loop", routeLogic.loop);
+router.get("/components", routeLogic.component);
 module.exports=router;

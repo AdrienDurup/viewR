@@ -11,7 +11,7 @@ const viewr = {
  },
   render: (pathString, valsObj) => {
     try {
-      console.log("render running");
+      // console.log("render running");
       const path = pathString.split("\"").join("") + ext;
       let htmlStr = fs.readFileSync(path, "utf-8");
       const regex = /(?<=\$\{\s*).*?(?=\s*\})/g;

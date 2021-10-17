@@ -17,6 +17,15 @@ module.exports = {
                     cards:users,
                 }));
         },
+        outerinner:(res)=>{
+
+        },
+        loop:()=>{
+
+        },
+        component:()=>{
+
+        },
 
     /*  */
     session: (req, res) => {
