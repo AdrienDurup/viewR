@@ -30,6 +30,28 @@ button,input{
     align-items: center;
     justify-content: center;
 }
+.main_nav{
+    font-size: 1rem;
+    font-family: "Raleway", sans-serif;
+    text-decoration: none;
+    margin-bottom: .7rem;
+}
+.main_nav a{
+    text-decoration: inherit;
+    font-family: inherit;
+    margin: 8px;
+    color: black;
+    font-weight: 400;
+}
+.main_nav a:hover{
+    text-decoration: inherit;
+    text-decoration: underline dotted 1px black;
+}
+.main_nav a:focus{
+    outline: none;
+    text-decoration: inherit;
+    text-decoration: underline dotted 2px black;
+}
 .header__separator{
     justify-self: flex-end;
     height: 1px;

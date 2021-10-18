@@ -11,13 +11,12 @@
 <header class="header">
 <h1 class="title">
 viewR <span class="title__baseline">Demo</span>
-<nav>
+<nav class="main_nav">
 <a href="/outerinner">outer/inner snippets</a>
 <a href="/loop">loop snippets</a>
 <a href="/component">components</a>
 </nav>
 </h1>
-${component}
 <div class="header__separator"></div>
 </header>
 <div class="wrapper">

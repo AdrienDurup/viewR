@@ -1,15 +1,23 @@
-// const cons = require("consolidate");
-const { log } = require("console");
 const fs = require("fs");
 const ext = ".viewr";
-const viewr = {
+
+class VRComponent{
+
+}
+
+class ViewR {
   /* 
   TODO PUT ALL REGEX IN VIEWR PROPERTY viewr.rx
   */
- rx:{
+ rx={
   stringAndVarParamRx : /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/,
- },
-  render: (pathString, valsObj) => {
+ };
+ set rx(v){};
+ locals={};
+ Constructor () {//express locals
+
+}
+  render(pathString, valsObj) {
     try {
       // console.log("render running");
       const path = pathString.split("\"").join("") + ext;
@@ -42,19 +50,18 @@ const viewr = {
       /* les simples */
       const innerComps = htmlStr.match(innerCompRxGlobal);
       if (innerComps) {
-        for (el of innerComps) {
-          // const match=innerCompsMatch.match(stringAndObjParamRx);
-          const generatedHTML = viewr.component(valsObj, htmlStr, el);
+        for (const el of innerComps) {
+          const generatedHTML = this.component(valsObj, htmlStr, el);
           if (generatedHTML!=="") 
             htmlStr = generatedHTML;
-            // console.log(generatedHTML);
-        };
+         };
       };
+
       /* les boucles */
       const loopComps = htmlStr.match(loopCompRx);
       if (loopComps) {
-        for (el of loopComps) {
-          htmlStr = viewr.loopComponent(valsObj, htmlStr, el);
+        for (const el of loopComps) {
+          htmlStr = this.loopComponent(valsObj, htmlStr, el);
         };
       };
 
@@ -65,8 +72,8 @@ const viewr = {
        */
       const varArray = htmlStr.match(regex);
       if (varArray) {
-        for (el of varArray) {
-          const tmpStr=viewr.findReplace(valsObj, htmlStr, el);
+        for (const el of varArray) {
+          const tmpStr=this.findReplace(valsObj, htmlStr, el);
           if(tmpStr)
           htmlStr = tmpStr;
         };
@@ -91,14 +98,14 @@ const viewr = {
     } catch (e) {
       console.error(e);
     };
-  },
+  }
 
   /* /!\ Fonction test qui ne gère pas l’absence de valeur */
   /*  @param valObj:globl values Object passed at render in the first place
   @param str: string to modify
   @ innerCompsMatchElement: element from array of viewr-components declarations, matching the component() pattern
    */
-  component: (valsObj, str, innerCompsMatchElement) => {//Attention match global en amont donc sans les capturants
+  component (valsObj, str, innerCompsMatchElement) {//Attention match global en amont donc sans les capturants
     console.log("component() running");
     const stringAndVarParamRx = /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/;
     if (!innerCompsMatchElement) {
@@ -115,19 +122,19 @@ const viewr = {
       // console.log(viewrFuncLine);
     };
     // console.log(match);
-    let componentStr = viewr.render(path, values);
+    let componentStr = this.render(path, values);
     // console.log(componentStr);
     return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
     // console.log(str);
-  },
-  loopComponent: (valsObj, str, loopCompMatchElement) => {//valsObj l’objet "global" à render qui contient toute la data nécessaire
+  }
+  loopComponent (valsObj, str, loopCompMatchElement) {//valsObj l’objet "global" à render qui contient toute la data nécessaire
     // console.log(valsObj);
     try {
 
     if (!loopCompMatchElement)
       return null;
 
-    const match=loopCompMatchElement.match(viewr.rx.stringAndVarParamRx);
+    const match=loopCompMatchElement.match(this.rx.stringAndVarParamRx);
     console.log("loop running");
     let path, values, objectName, viewrFuncLine;
     if (match) {
@@ -142,17 +149,17 @@ const viewr = {
 /*       if(!valsObj[objectName])
       return null; */
 
-      for (dataObject of values) {
-        tmpArray.push(viewr.render(path,dataObject));
+      for (const dataObject of values) {
+        tmpArray.push(this.render(path,dataObject));
       };
       return str.replace(viewrFuncLine, tmpArray.join("\n"));
     } catch (e) {
       console.error(e);
     };
 
-  },
+  }
 
-  findReplace: (valsObj, str, varName) => {
+  findReplace (valsObj, str, varName) {
     try {
       // console.log("str in findreplace", str);
       const regexVar = /^[a-zA-Z_][a-zA-Z_0-9^-]*$/;
@@ -185,13 +192,11 @@ const viewr = {
     } catch (e) {
       console.log(e);
     };
-  },
-  init: (xprLocals) => {//express locals
-    this.locals = xprLocals;
-    console.log(this.locals);
   }
-};
-module.exports = viewr;
+}
+
+
+module.exports = {ViewR,VRComponent};
 
 /* AUTRE point de vue, à refaire :
 on parse l’objet en paramètre pour récup les clés et les sous clés */

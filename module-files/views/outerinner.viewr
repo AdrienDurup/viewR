@@ -1,0 +1,6 @@
+${outerComponent("views/partials/pagebase")}
+<main class="main_gamelaunch">
+<div class="main__formwrapper">
+${component("views/partials/card",card)}
+<div>
+</main>

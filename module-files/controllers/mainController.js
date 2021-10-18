@@ -1,5 +1,6 @@
 
-const viewr = require("../core/viewr");
+const {ViewR} = require("../core/viewr");
+const viewr=new ViewR();
 const users= require("../data/sampleData.json");
 
 /* Routes logic */
@@ -17,13 +18,19 @@ module.exports = {
                     cards:users,
                 }));
         },
-        outerinner:(res)=>{
-
+        outerinner:(req,res)=>{
+            res.status(200).send(viewr.render("views/outerinner",
+                {
+                    card:users[0],
+                }));
         },
-        loop:()=>{
-
+        loop:(req,res)=>{
+            res.status(200).send(viewr.render("views/loop",
+                {
+                    cards:users,
+                }));
         },
-        component:()=>{
+        component:(req,res)=>{
 
         },
 
