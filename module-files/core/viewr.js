@@ -11,6 +11,7 @@ class ViewR {
   */
  rx={
   stringAndVarParamRx : /["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/,
+  stringVarVarParamRx:/["'`](.*)["'`]\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)\s*,\s*([a-zA-Z_][a-zA-Z_0-9^-]*)/,
  };
  set rx(v){};
  locals={};
@@ -38,7 +39,8 @@ class ViewR {
       // const innerCompRx = new RegExp(functionWrap2("component"));
 
       const loopCompRx = new RegExp(functionWrap2("loopComponent"), "g");
-      // const loopCompRx = new RegExp(functionWrap2("loopCompoment"));
+
+      const conditionnalCompRx = new RegExp(functionWrap2("conditionnal"), "g");
 
       /* On fournit les composants englobants */
       const outer = htmlStr.match(outerRx);
@@ -64,6 +66,14 @@ class ViewR {
           htmlStr = this.loopComponent(valsObj, htmlStr, el);
         };
       };
+
+      /* conditionnelles */
+      // const conditionnalComps = htmlStr.match(conditionnalCompRx);
+      // if (conditionnalComps) {
+      //   for (const el of conditionnalComps) {
+      //     htmlStr = this.conditionnal(valsObj, htmlStr, el);
+      //   };
+      // };
 
       /* On fournit les variables */
       /* 
@@ -115,7 +125,7 @@ class ViewR {
     // console.log(match);
     let path, values, objectName, viewrFuncLine;
     if (match) {
-      path = match[1].split("\"").join("");
+      path = match[1].split(/["'`]/).join("");
       objectName = match[2];
       values = valsObj[objectName];
       viewrFuncLine = innerCompsMatchElement;
@@ -127,6 +137,7 @@ class ViewR {
     return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
     // console.log(str);
   }
+
   loopComponent (valsObj, str, loopCompMatchElement) {//valsObj l’objet "global" à render qui contient toute la data nécessaire
     // console.log(valsObj);
     try {
@@ -138,7 +149,7 @@ class ViewR {
     console.log("loop running");
     let path, values, objectName, viewrFuncLine;
     if (match) {
-      path = match[1].split("\"").join("");
+      path = match[1].split(/["'`]/).join("");
       objectName = match[2];
       values = valsObj[objectName];
       viewrFuncLine = loopCompMatchElement;
@@ -158,6 +169,25 @@ class ViewR {
     };
 
   }
+
+  // conditionnal(valsObj, str,conditionnalMatchElement){
+  //   if (!conditionnalMatchElement)
+  //     return null;
+
+  //   const match=loopCompMatchElement.match(this.rx.stringVarVarParamRx);
+  //   let path, values, objectName, conditionValue, viewrFuncLine;
+  //   if (match) {
+  //     path = match[1].split(/["'`]/).join("");
+  //     objectName = match[2];
+  //     values = valsObj[objectName];
+  //     conditionValue=valsObj[match[3]];
+  //     viewrFuncLine = loopCompMatchElement;
+  //     // console.log(viewrFuncLine);
+  //   };
+
+
+  // }
+
 
   findReplace (valsObj, str, varName) {
     try {
