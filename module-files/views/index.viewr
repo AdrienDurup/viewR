@@ -1,7 +1,7 @@
-${outerComponent("views/partials/pagebase")}
+${wrapperSnippet("views/partials/pagebase")}
 <main class="main_gamelaunch">
 <div class="main__formwrapper">
-${component("views/partials/card",card)}
-${loopComponent("views/partials/card",cards)}
+${snippet("views/partials/card",card)}
+${loopSnippet("views/partials/card",cards)}
 <div>
 </main>
