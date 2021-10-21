@@ -22,7 +22,7 @@ module.exports = {
         let toggle = true;
         if (req.query.toggleVar === "true") {
             toggle = true;
-        } else if(req.query.toggleVar === "false"){
+        } else if (req.query.toggleVar === "false") {
             toggle = false;
         };
         res.status(200).send(viewr.render("views/outerinner",
@@ -38,10 +38,15 @@ module.exports = {
             }));
     },
     component: (req, res) => {
-        res.status(200).send(viewr.render("views/component",{}));
+        res.status(200).send(viewr.render("views/component", {}));
+    },
+    componentQueryResult:(req, res)=>{
+        let test = req.query.msg;
+        test += " wolrd";
+        res.status(200).send(test);
     },
     test: (req, res) => {
-res.status(200).json({test:2});
+        res.status(200).json({ searchLabel:" Search",button:"Go !"});
     },
 
     /*  */

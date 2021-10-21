@@ -76,16 +76,6 @@ class ViewR {
       };
 
 
-      /* composants */
-      const comps = htmlStr.match(compRx);
-      if (comps) {
-        console.log("comps", comps);
-        for (const el of comps) {
-          htmlStr = this.component(valsObj, htmlStr, el);
-          console.log(htmlStr);
-        };
-      };
-
       /* On fournit les variables */
       /* 
       TODO ajouter un meilleur controle sur la regex
@@ -101,6 +91,14 @@ class ViewR {
         // console.log("varArray",htmlStr);
       };
 
+      /* composants */
+      const comps = htmlStr.match(compRx);
+      if (comps) {
+        console.log("comps", comps);
+        for (const el of comps) {
+          htmlStr = this.component(valsObj, htmlStr, el);
+        };
+      };
 
       /* 
       TODO RECURSIVITÉ : pour aller chercher les composants extérieurs tant qu’il en trouve à chaque injection
@@ -125,7 +123,7 @@ class ViewR {
     const stringOptionalVarParamRx = /["'`](.*)["'`]\s*(,\s*([a-zA-Z_][a-zA-Z_0-9^-]*))?/;
 
     const match = compsMatchElement.match(stringOptionalVarParamRx);
-    console.log(match);
+    // console.log(match);
     const viewrFuncLine = compsMatchElement;
     if (match) {
       const pathArray = match[1].split(/["'`]/).join("").split("\/");
@@ -136,11 +134,14 @@ class ViewR {
         values = valsObj[match[3]];
       };
       const MyComp = require(fs.realpathSync(`${path}/${compName}.js`));
+      console.log("instanciation of "+`${path}/${compName}.js`);
       const myComp = new MyComp();
-      let componentStr = myComp.render();//ajouter optional data ?
-      // console.log(componentStr);
-      return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
-      // console.log(str);
+      
+          let componentStr = myComp.render();//ajouter optional data ?
+            return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
+      
+
+
     };
   }
 
@@ -245,7 +246,6 @@ class ViewR {
 
   }
 
-
   findReplace(valsObj, str, varName) {
     try {
       // console.log("str in findreplace", str);
@@ -280,7 +280,78 @@ class ViewR {
       console.log(e);
     };
   }
+
+
+  /* 
+  ============================================
+  STATIC FUNCTIONS FOR COMPONENT INTERACTION
+  ============================================
+  */
+
+
+  static replaceVar(valsObj, str) {
+
+    try {
+      /* On fournit les variables */
+      /* 
+      TODO ajouter un meilleur controle sur la regex
+      qui prend les loops pour des variables 
+       */ const regex = /(?<=\$\{\s*).*?(?=\s*\})/g;
+
+      const varArray = str.match(regex);
+      if (varArray) {
+        for (const el of varArray) {
+          str = findReplace(valsObj, str, el);
+        };
+        return str;
+      };
+
+      function findReplace(valsObj, str, varName) {
+        // console.log("str in findreplace", str);
+        const regexVar = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
+        const regexProp = /^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_0-9]*)+$/;
+        const regexArray = /^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_0-9]*)*\[.*\]$/;//non utilisé encore
+        if (regexVar.test(varName)) {
+          // console.log(`VIEWR regexVar "${varName}" : `+regexVar.test(varName));
+          return str.replace("${" + varName + "}", valsObj[varName]);
+        } else if (regexProp.test(varName)) {
+          //  console.log(`VIEWR regexProp "${varName}": `+regexProp.test(varName));
+          const nameArr = varName.split(".");
+          console.log("nameArr ==>", nameArr);
+          let tmpValObj = {};
+          Object.assign(tmpValObj, valsObj);
+          console.log("ASSIGN", tmpValObj);
+          /* pour chaque partie du tableau nameArr, on va chercher plus loin à l’intérieur de
+           tmpValObj copie de (tmpValObj) : tmpValObj[nameArr[0]][nameArr[1]][nameArr[2]]...
+           … équivalent à tmpValObj["prop1"]["prop2"]["prop3"]
+           à chaque boucle on change l’objet en référence jusqu’à ce qu’on récupère une valeur primitive à la fin*/
+          for (let i = 0; i < nameArr.length; i++) {
+            tmpValObj = tmpValObj[nameArr[i]];
+            /* 
+            TODO Contrôler et gérer les inadéquations entre la data reçue et celle attendue */
+
+            // console.log("KEYS", Object.keys(tmpValObj), typeof tmpValObj, tmpValObj);
+          };
+          // console.log("STR",str);
+          const regexToReplace = new RegExp("\\$\\{\\s*" + varName + "\\s*\\}");
+          console.log("TYPE OF tmpValObj",typeof tmpValObj);
+          console.log(str.replace(regexToReplace, tmpValObj));
+
+          return str.replace(regexToReplace, tmpValObj);
+
+        } else if (regexArray.test(varName)) {
+          console.log("Array not implemented Yet");
+          /*
+              TODO  Implement Array row recognition 
+          */
+        };
+      };
+    } catch (e) {
+      console.log(e);
+    };
+  }
 }
+
 const https = require("https");
 const http = require("http");
 
@@ -289,43 +360,68 @@ class VRComponent {
   id = 0;
   dirname;
   viewr;
-  constructor(httpsOptions,realDirname) {
+  dataReceiver = "";
+  constructor(httpsOptions, realDirname) {
     this.httpsOptions = httpsOptions;
     this.id = ViewR.components.length;
     ViewR.components.push(this);
-    this.dirname=realDirname;
+    this.dirname = realDirname;
     this.setViewr();
   }
+  // constructor(httpsOptions, realDirname, dataErr = this.error, dataRes = this.result, dataEnd=this.end,dataReceiver=this.dataReceiver) {
+  //   this.httpsOptions = httpsOptions;
+  //   this.id = ViewR.components.length;
+  //   ViewR.components.push(this);
+  //   this.dirname = realDirname;
+  //   this.setViewr();
+  //   this.queryData(dataReceiver,dataErr,dataRes,dataEnd);
+  // }
   /* 
+
+  
   @param {cbErr} callback for error handling. Needs error param
   @param {cbRes} callback for response handling. Needs response param
    */
-  queryData(cbErr, cbRes) {
-    console.log(this.httpsOptions);
-    const req = http.request(this.httpsOptions, (res) => {
-      req.on('error', cbErr);
-      res.on('data', cbRes);
+  queryData(dataReceiver = this.dataReceiver, errorCb = this.error, resultCb = this.result, endCb = this.end) {
+    /* req = http.ClientRequest Object. extends Stream. the callback is an handler for response event. this 
+    callback parameter is an http.IncomingMessage. Extends Stream.Readable */
+    const request = http.request(this.httpsOptions, (response) => {
+      response.on('data', (incomingData) => { resultCb(dataReceiver, incomingData) });//wrapper pour passer le receiver au callback overridable
+      response.on('end', (dataReceiver) => { endCb(dataReceiver) });
     });
-    req.end();
+    request.on('error', errorCb);
+    request.end();
+    // request.end(JSON.stringify(dataReceiver), "utf-8");
   }
-
+  error(err) {//default callback. overridable
+    console.error(`Error : ${err}`);
+  }
+  result(receiver, incomingData) {//default callback. overridable
+    receiver += incomingData;
+    console.log("result method", receiver);
+  }
+  end(receiver) {//default callback. overridable
+    console.log("request end with " + receiver);
+    return receiver;
+  }
   /* permet de stocker la string du balisage .viewr dans l’instance*/
-   setViewr(){
-    let name=this.constructor.name;
+  setViewr() {
+    let name = this.constructor.name;
     console.log(name);
-    const firstLetterLower=name.slice(0,1).toLowerCase();
+    const firstLetterLower = name.slice(0, 1).toLowerCase();
     console.log(firstLetterLower);
-    name=name.replace(/./,firstLetterLower);
-    this.viewr=fs.readFileSync(`${this.dirname}/${name}.viewr`);
+    name = name.replace(/./, firstLetterLower);
+    this.viewr = fs.readFileSync(`${this.dirname}/${name}.viewr`, "utf-8");
   }
 
-  transform(any){}//sert à transformer le composant avant le rendu. Doit retourner string
+  transform() {
+    return ViewR.replaceVar({ data: this.dataReceiver }, this.viewr);
+  }//sert à transformer le composant avant le rendu. Doit retourner string
 
   /* Méthode appelée par le render de ViewR */
-  render(){
-   const htmlStr=this.transform(this.viewr);
-    return htmlStr;
- }
+  render() {
+    return this.viewr;
+  }
 
   /* Créer ici une requête html */
   // const req = new XMLHttpRequest();
@@ -343,7 +439,7 @@ class VRComponent {
 }
 
 module.exports = {
-  ViewR, VRComponent,fs
+  ViewR, VRComponent, fs, http
 }
 
 

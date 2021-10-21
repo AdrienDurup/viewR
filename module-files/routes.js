@@ -14,4 +14,5 @@ router.get("/test", routeLogic.test);
 router.get("/outerinner", routeLogic.outerinner);
 router.get("/loop", routeLogic.loop);
 router.get("/component", routeLogic.component);
+router.get("/msg", routeLogic.test);
 module.exports=router;
