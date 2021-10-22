@@ -104,7 +104,7 @@ class ViewR {
       if (comps) {
         console.log("comps", comps);
         for (const el of comps) {
-          htmlStr = await this.component(valsObj, el);
+          htmlStr = await this.component(valsObj, htmlStr, el);
         };
       };
 
@@ -127,29 +127,34 @@ class ViewR {
     };
   }
 
-  async component(valsObj, compsMatchElement) {
-    const stringOptionalVarParamRx = /["'`](.*)["'`]\s*(,\s*([a-zA-Z_][a-zA-Z_0-9^-]*))?/;
+  async component(valsObj, htmlStr, compsMatchElement) {
+    try {
+      const stringOptionalVarParamRx = /["'`](.*)["'`]\s*(,\s*([a-zA-Z_][a-zA-Z_0-9^-]*))?/;
 
-    const match = compsMatchElement.match(stringOptionalVarParamRx);
-    // console.log(match);
-    const viewrFuncLine = compsMatchElement;
-    if (match) {
-      const pathArray = match[1].split(/["'`]/).join("").split("\/");
-      const compName = pathArray[pathArray.length - 1];
-      const path = match[1];
-      let values;
-      if (match[3]) {
-        values = valsObj[match[3]];
+      const match = compsMatchElement.match(stringOptionalVarParamRx);
+      // console.log(match);
+      const viewrFuncLine = compsMatchElement;
+      if (match) {
+        const pathArray = match[1].split(/["'`]/).join("").split("\/");
+        const compName = pathArray[pathArray.length - 1];
+        const path = match[1];
+        let values;
+        if (match[3]) {
+          values = valsObj[match[3]];
+        };
+        const MyComp = require(fs.realpathSync(`${path}/${compName}.js`));
+        // console.log("instanciation of " + `${path}/${compName}.js`);
+        // let componentStr = "<div>ViewR ERROR : couldn’t fetch required data.</div>";
+        const myComp = new MyComp();
+        const componentStr = await myComp.render();
+        console.log(componentStr);
+        return htmlStr.replace(viewrFuncLine, componentStr);
+        // myComp.render();
+
       };
-      const MyComp = require(fs.realpathSync(`${path}/${compName}.js`));
-      // console.log("instanciation of " + `${path}/${compName}.js`);
-      // let componentStr = "<div>ViewR ERROR : couldn’t fetch required data.</div>";
-      const myComp = new MyComp();
-      const componentStr = await myComp.render();
-      console.log(componentStr);
-      return componentStr;
-      // myComp.render();
-
+    } catch (e) {
+      console.error(e);
+      return htmlStr;
     };
   }
 
