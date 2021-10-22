@@ -1,5 +1,4 @@
 const fs = require("fs");
-const axios = require("axios");
 const ext = ".viewr";
 
 class ViewR {
@@ -28,7 +27,7 @@ class ViewR {
     /* En attente */
   }
 
-  async render(pathString, valsObj) {
+  render(pathString, valsObj) {
     try {
       // console.log("render running");
       const path = pathString.split("\"").join("") + ext;
@@ -104,7 +103,7 @@ class ViewR {
       if (comps) {
         console.log("comps", comps);
         for (const el of comps) {
-          htmlStr = await this.component(valsObj, el);
+          htmlStr = this.component(valsObj, htmlStr, el);
         };
       };
 
@@ -127,7 +126,7 @@ class ViewR {
     };
   }
 
-  async component(valsObj, compsMatchElement) {
+  component(valsObj, str, compsMatchElement) {
     const stringOptionalVarParamRx = /["'`](.*)["'`]\s*(,\s*([a-zA-Z_][a-zA-Z_0-9^-]*))?/;
 
     const match = compsMatchElement.match(stringOptionalVarParamRx);
@@ -144,9 +143,13 @@ class ViewR {
       const MyComp = require(fs.realpathSync(`${path}/${compName}.js`));
       // console.log("instanciation of " + `${path}/${compName}.js`);
       // let componentStr = "<div>ViewR ERROR : couldn’t fetch required data.</div>";
+      let componentStr;
       const myComp = new MyComp();
-      const componentStr = await myComp.render();
-      console.log(componentStr);
+      myComp.emitter.on("dataReady", (data) => {
+        console.log("AAAAAmyComp.emitter.on", data);
+        componentStr = data;
+      });
+      myComp.render();
       return componentStr;
       // myComp.render();
 

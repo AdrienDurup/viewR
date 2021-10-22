@@ -2,6 +2,7 @@
 const { ViewR } = require("../core/viewr");
 const viewr = new ViewR();
 const users = require("../data/sampleData.json");
+const axios = require("axios");
 
 /* Routes logic */
 module.exports = {
@@ -37,8 +38,8 @@ module.exports = {
                 cards: users,
             }));
     },
-    component: (req, res) => {
-        res.status(200).send(viewr.render("views/component", {}));
+     component: async (req, res) => {
+        res.status(200).send(await viewr.render("views/component"));
     },
     componentQueryResult:(req, res)=>{
         let test = req.query.msg;
