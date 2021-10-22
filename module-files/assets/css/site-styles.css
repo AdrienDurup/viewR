@@ -23,6 +23,10 @@ button,input{
     align-items: center;
     justify-content: space-between;
 }
+.a_reset{
+    text-decoration: none;
+    color: inherit;
+}
 .header{
     height: var(--header-height);
     display: flex;

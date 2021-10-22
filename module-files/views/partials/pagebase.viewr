@@ -9,8 +9,8 @@
 </head>
 <body>
 <header class="header">
-<h1 class="title">
-viewR <span class="title__baseline">Demo</span>
+<h1 class="title"><a class="a_reset" href="/">
+viewR <span class="title__baseline">Demo</a></span>
 <nav class="main_nav">
 <a href="/outerinner">outer/inner snippets</a>
 <a href="/loop">loop snippets</a>

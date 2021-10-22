@@ -1,6 +1,7 @@
 const fs = require("fs");
 const axios = require("axios");
 const ext = ".viewr";
+const vrHlp=require("./lib/helpers");
 
 class ViewR {
   /* 
@@ -28,7 +29,7 @@ class ViewR {
     /* En attente */
   }
 
-  async render(pathString, valsObj) {
+  renderSync(pathString, valsObj) {
     try {
       // console.log("render running");
       const path = pathString.split("\"").join("") + ext;
@@ -36,22 +37,15 @@ class ViewR {
 
       const regex = /(?<=\$\{\s*).*?(?=\s*\})/g;
       /* crée une string regex pour toutes les reconnaissances de ${fonctionDuModuleViewr()} */
-      function functionWrap(funcName) {
-        return `(\\$\\{\\s*${funcName}\\(\\s*)(.*)(\\s*\\)\\s*\\})`;
-      }
-      function functionWrap2(funcName) {//FOR TEST PURPOSE
-        return `\\$\\{\\s*${funcName}\\(\\s*(.*)\\s*\\)\\s*\\}`;
-      }
-      const outerRx = new RegExp(functionWrap("wrapperSnippet"));
-      const innerCompRx = new RegExp(functionWrap2("snippet"), "g");
-      const loopCompRx = new RegExp(functionWrap2("loopSnippet"), "g");
-      const toggleCompRx = new RegExp(functionWrap2("togglable"), "g");
-      const compRx = new RegExp(functionWrap2("component"), "g");
+      const outerRx = new RegExp(vrHlp.functionWrap("wrapperSnippet"));
+      const innerCompRx = new RegExp(vrHlp.functionWrap("snippet"), "g");
+      const loopCompRx = new RegExp(vrHlp.functionWrap("loopSnippet"), "g");
+      const toggleCompRx = new RegExp(vrHlp.functionWrap("togglable"), "g");
 
       /* On fournit les composants englobants */
       const outer = htmlStr.match(outerRx);
       if (outer) {
-        wrapperSnippet(outer);
+        htmlStr = this.wrapperSnippet(outer, htmlStr);
       };
 
       /* On fournit les composants intérieurs */
@@ -64,6 +58,7 @@ class ViewR {
             htmlStr = generatedHTML;
         };
       };
+      // console.log(htmlStr);
 
       /* les boucles */
       const loopComps = htmlStr.match(loopCompRx);
@@ -99,32 +94,35 @@ class ViewR {
         // console.log("varArray",htmlStr);
       };
 
-      /* composants */
-      const comps = htmlStr.match(compRx);
-      if (comps) {
-        console.log("comps", comps);
-        for (const el of comps) {
-          htmlStr = await this.component(valsObj, htmlStr, el);
-        };
-      };
-
       /* 
       TODO RECURSIVITÉ : pour aller chercher les composants extérieurs tant qu’il en trouve à chaque injection
        */
-      function wrapperSnippet(outerMatch) {//n’accepte qu’une seule occurence par fichier
-        const path = outerMatch[2];
-        const viewrFuncLine = outerMatch[0];
-        let outerStr = fs.readFileSync(path.split("\"").join("") + ext, "utf-8");
-        htmlStr = htmlStr.replace(viewrFuncLine, "");//replace vs split join ?
-        htmlStr = outerStr.replace("<<INSERTION-POINT>>", htmlStr);
-        // console.log(htmlStr);
-      }
-
+      console.log("FINAL",htmlStr);
       return htmlStr;
 
     } catch (e) {
       console.error(e);
     };
+  }
+
+  async render(pathString, valsObj) {
+    try{
+    /* rendu des snippets */
+    let htmlStr = this.renderSync(pathString, valsObj);
+
+    /* rendu des composants */
+    const compRx = new RegExp(vrHlp.functionWrap("component"), "g");
+    const comps = htmlStr.match(compRx);
+    if (comps) {
+      console.log("comps", comps);
+      for (const el of comps) {
+        htmlStr = await this.component(valsObj, htmlStr, el);
+      };
+    };
+    return htmlStr;
+  }catch(e){
+console.error(e);
+  };
   }
 
   async component(valsObj, htmlStr, compsMatchElement) {
@@ -155,10 +153,18 @@ class ViewR {
     } catch (e) {
       console.error(e);
       return htmlStr;
-    };
+    }; r
   }
 
-
+  wrapperSnippet(outerMatch, htmlStr) {//n’accepte qu’une seule occurence par fichier
+    const path = outerMatch[1];
+    const viewrFuncLine = outerMatch[0];
+    let outerStr = fs.readFileSync(path.split("\"").join("") + ext, "utf-8");
+    htmlStr = htmlStr.replace(viewrFuncLine, "");//replace vs split join ?
+    htmlStr = outerStr.replace("<<INSERTION-POINT>>", htmlStr);
+    return htmlStr;
+    // console.log(htmlStr);
+  }
   /* /!\ Fonction test qui ne gère pas l’absence de valeur */
   /*  @param valObj:globl values Object passed at render in the first place
   @param str: string to modify
@@ -171,21 +177,17 @@ class ViewR {
       return null;
     };
     const match = innerCompsMatchElement.match(stringAndVarParamRx);
-    // console.log(match);
     let path, values, objectName, viewrFuncLine;
     if (match) {
       path = match[1].split(/["'`]/).join("");
       objectName = match[2];
       values = valsObj[objectName];
       viewrFuncLine = innerCompsMatchElement;
-      // console.log(viewrFuncLine);
-      // console.log(match);
-      let componentStr = this.render(path, values);
+      let componentStr = this.renderSync(path, values);
       //console.log(componentStr);
       return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
       // console.log(str);
     };
-
   }
 
   loopSnippet(valsObj, str, loopCompMatchElement) {//valsObj l’objet "global" à render qui contient toute la data nécessaire
@@ -194,7 +196,6 @@ class ViewR {
 
       if (!loopCompMatchElement)
         return null;
-
       const match = loopCompMatchElement.match(this.rx.stringAndVarParamRx);
       console.log("loop running");
       let path, values, objectName, viewrFuncLine;
@@ -208,12 +209,8 @@ class ViewR {
         throw `ViewR Error : invalid argument string in ${loopCompMatchElement}`;
       }
       const tmpArray = [];
-
-      /*       if(!valsObj[objectName])
-            return null; */
-
       for (const dataObject of values) {
-        tmpArray.push(this.render(path, dataObject));
+        tmpArray.push(this.renderSync(path, dataObject));
       };
       return str.replace(viewrFuncLine, tmpArray.join("\n"));
     } catch (e) {
@@ -230,7 +227,6 @@ class ViewR {
     try {
       //     if (!toggleMatchElement)
       // return null;
-
       const match = toggleMatchElement.match(this.rx.stringVarVarParamRx);
       const viewrFuncLine = toggleMatchElement;
       let path, values, conditionValue;
@@ -240,23 +236,17 @@ class ViewR {
         if (conditionValue) {
           path = match[1].split(/["'`]/).join("");
           values = valsObj[match[2]];// match[2] donne un nom de variable 
-          let componentStr = this.render(path, values);
+          let componentStr = this.renderSync(path, values);
           return str.replace(viewrFuncLine, componentStr);//replace vs split join ?
         } else {
           return str.replace(viewrFuncLine, "");
         };
-
-
-
       } else {
         throw `ViewR Error : invalid argument string in ${toggleMatchElement}`;
       };
     } catch (e) {
       console.error(e);
     };
-
-
-
   }
 
   findReplace(valsObj, str, varName) {
@@ -372,80 +362,73 @@ CLASS FOR COMPONENTS
 ============================================
 */
 
-
 class VRComponent {
-  httpsOptions = {};
+  queryOptions = {
+    url: `http://localhost:1982`,
+  };
   id = 0;
   dirname;
   viewr;
-  dataReceiver = "";
-  constructor(httpsOptions, realDirname) {
-    this.httpsOptions = httpsOptions;
+  constructedView = "";
+  dataReceiver = {data:undefined};
+  transformation=()=>{};
+  constructor(queryOptions, realDirname) {
+    this.queryOptions = queryOptions;
     this.id = ViewR.components.length;
-    ViewR.components.push(this);
     this.dirname = realDirname;
-    this.setViewr();
+    this.viewr = this.setViewr();
+    /* on met data à undefined pour le cas où l’utilisateur 
+    souhaite réécrire constructWith mais pas transformation */
+    //can be filled with function with string parameter and optional data
+    this.transformation=(viewr,data=undefined)=>{
+      console.log("let’s transform");
+      return viewr;
+    };
   }
-  /*
-  @param {cbErr} callback for error handling. Needs error param
-  @param {cbRes} callback for response handling. Needs response param
-   */
-  queryData(dataReceiver = this.dataReceiver, errorCb = this.error, resultCb = this.result, endCb = this.end) {
-    /* req = http.ClientRequest Object. extends Stream. the callback is an handler for response event. this 
-    callback parameter is an http.IncomingMessage. Extends Stream.Readable */
-    const request = http.request(this.httpsOptions, (response) => {
-      response.on('data', (incomingData) => { resultCb(dataReceiver, incomingData) });//wrapper pour passer le receiver au callback overridable
-      response.on('end', (dataReceiver) => { endCb(dataReceiver) });
-    });
-    request.on('error', errorCb);
-    request.end();
-    // request.end(JSON.stringify(dataReceiver), "utf-8");
+/* on va chercher la data sur le server */
+  async queryData(receiver = this.dataReceiver) {
+    try {
+      const queryResult = await axios.get(this.queryOptions.url);
+      receiver.data = queryResult.data;
+      // console.log("received ?",receiver.data);
+      this.constructedView = this.constructWith(receiver.data);
+      console.log("this.constructedView before render",this.constructedView);
+    } catch (e) {
+      console.error(e);
+    };
   }
-  error(err) {//default callback. overridable
-    console.error(`Error : ${err}`);
+
+  constructWith=(data)=> {
+    let constructStr=this.viewr;
+    // console.log(this);
+    // if (transformation)
+      constructStr = this.transformation(constructStr,data);
+      console.log(constructStr,data);
+      // console.log("before replaceVar is data OK ?",this.dataReceiver.data);
+      const replacementResult=ViewR.replaceVar({ data: this.dataReceiver.data}, constructStr);
+      // console.log("test de replace",replacementResult);
+      return replacementResult ;
   }
-  result(receiver, incomingData) {//default callback. overridable
-    receiver += incomingData;
-    console.log("result method", receiver);
-  }
-  end(receiver) {//default callback. overridable
-    console.log("request end with " + receiver);
-    return receiver;
-  }
+
   /* permet de stocker la string du balisage .viewr dans l’instance*/
   setViewr() {
     let name = this.constructor.name;
-    console.log(name);
+    // console.log(name);
     const firstLetterLower = name.slice(0, 1).toLowerCase();
-    console.log(firstLetterLower);
+    // console.log(firstLetterLower);
     name = name.replace(/./, firstLetterLower);
-    this.viewr = fs.readFileSync(`${this.dirname}/${name}.viewr`, "utf-8");
+    return fs.readFileSync(`${this.dirname}/${name}.viewr`, "utf-8");
   }
 
-  transform() {
-
-    this.viewr = ViewR.replaceVar({ data: this.dataReceiver }, this.viewr);
-  }//sert à transformer le composant avant le rendu. Doit retourner string
 
   /* Méthode appelée par le render de ViewR */
-  render() {
-    console.log("render", this.viewr);
-    return this.viewr;
+  async render() {
+   await this.queryData();
+    console.log("constructedView",this.constructedView);
+    return this.constructedView;
+
   }
 
-  /* Créer ici une requête html */
-  // const req = new XMLHttpRequest();
-
-  /* On lui passe des données */
-  // req.submittedData=JSON.stringify({move:this.coordinate});
-
-  /* on récupère le nom de session stocké dans l’id de body  */
-  // const session = document.querySelector("body").id;
-  /* on poste la requête */
-  // const reqJSON = encodeURI(JSON.stringify({ move: this.coordinate }));
-  // console.log(`reqJSON : ${reqJSON}`);
-  // req.open("GET", `/penteonline/${session}/?json=${reqJSON}`, false);
-  // req.send();
 }
 
 module.exports = {

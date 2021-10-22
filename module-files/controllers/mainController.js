@@ -2,7 +2,6 @@
 const { ViewR } = require("../core/viewr");
 const viewr = new ViewR();
 const users = require("../data/sampleData.json");
-const axios = require("axios");
 
 /* Routes logic */
 module.exports = {
@@ -13,7 +12,7 @@ module.exports = {
 
     root: (req, res) => {
 
-        res.status(200).send(viewr.render("views/index",
+        res.status(200).send(viewr.renderSync("views/index",
             {
                 card: users[0],
                 cards: users,
@@ -26,14 +25,14 @@ module.exports = {
         } else if (req.query.toggleVar === "false") {
             toggle = false;
         };
-        res.status(200).send(viewr.render("views/outerinner",
+        res.status(200).send(viewr.renderSync("views/outerinner",
             {
                 card: users[0],
                 toggle
             }));
     },
     loop: (req, res) => {
-        res.status(200).send(viewr.render("views/loop",
+        res.status(200).send(viewr.renderSync("views/loop",
             {
                 cards: users,
             }));

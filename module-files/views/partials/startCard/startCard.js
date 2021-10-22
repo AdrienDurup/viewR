@@ -1,43 +1,54 @@
 /* startCard component */
-const { VRComponent, ViewR, http } = require("../../../core/viewr");
-const { EventEmitter } = require("events");
+const { VRComponent } = require("../../../core/viewr");
 const axios = require("axios");
-// const { EventEmitter, EventTarget} = require("events");
-class dataReadyEmitter extends EventEmitter { }
+
+queryOptions = {
+
+};
 
 class StartCard extends VRComponent {
-
-constructedView="";
+  queryOptions = {
+    /* url for data request via http request (axios) */
+    url: "http://localhost:4000/msg",
+  }
+  /*   
+  //you can define a data wrapper object and pass it to base class methods.
+  //default is 
+  dataReceiver={data:undefined}; */
+  /*
+  //property that stores ViewR string from component File
+   viewr="";
+   //property that stores in-construction HTML string
+  constructedView="";
+   */
   constructor() {
-    super(StartCard.httpsOptions, __dirname);
-    // this.queryData();
-    // console.log("receiver startCard", this.dataReceiver);
+    /* super constructor needs script path for ViewR to access component files */
+    super(StartCard.queryOptions, __dirname);
   }
 
-  async queryData(receiver) {
-    try {
-      receiver = await axios.get("http://localhost:4000/msg");
-      receiver=receiver.data;
-      console.log("RECEIVER",receiver);
-      this.constructedView=this.transformWith(receiver);
-    } catch (e) {
-      console.error(e);
+  /*   You can override methods and pnoperties :
+    async queryData(dataReceiver) {
+      // Performs HTTP.get query via axios in order to fetch data, 
+      // and launch constructWith() in order to inject data into viewR string
     };
-  }
-  transformWith(data) {
-    if (data) {
-      const newStr = ViewR.replaceVar({ data }, this.viewr);
-      // console.log("TRANSFORMED", newStr);
-      return newStr;
-    } else { console.error("failed to JSON.parse data. is data Valid ?"); }
-
-  };
-  async render() {
-   await this.queryData(this.dataReceiver);
-    return this.constructedView;
-
-  }
-
+  
+    constructWith=(data)=> { 
+  
+     // transform viewR string into a HTML string with data incorporated if any.
+     // returns an HTML string. 
+     };
+  
+    transformation=(viewRstring,data=undefined)=>{ 
+  //    is executed inside this.constructWith();
+    //  performs custom operations before constructWith() returns its string.
+    //  returns an HTML string. 
+    };
+    async render(){
+      // Async method called inside ViewR.render();
+      // Calls this.queryData()
+      // and returns final value of this.constructedView
+    }
+  */
 }
 
 module.exports = StartCard;
